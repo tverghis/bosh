@@ -9,7 +9,7 @@ impl Universe {
     const UNIVERSE_ROWS: usize = 5;
     const UNIVERSE_COLS: usize = 5;
 
-    const GEN_SLEEP: Duration = Duration::from_millis(500);
+    const GEN_SLEEP: Duration = Duration::from_millis(700);
 
     fn new_empty() -> Self {
         Self {
