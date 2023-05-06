@@ -21,7 +21,28 @@ impl Universe {
         self.cells[row][col] = cell;
     }
 
-    fn tick(&mut self) {}
+    fn tick(&self) -> Self {
+        let mut new_generation = Universe::new_empty();
+
+        fn alive_neighbors_count(this_x: usize, this_y: usize) -> usize {
+            let mut sum = 0;
+
+            return sum;
+        }
+
+        for row in 0..Universe::UNIVERSE_ROWS {
+            for col in 0..Universe::UNIVERSE_COLS {
+                let current_cell = self.cells[row][col];
+                let alive_neighbors = alive_neighbors_count(row, col);
+
+                let new_state = current_cell.state.transition(alive_neighbors);
+
+                new_generation.cells[row][col] = Cell::new(new_state);
+            }
+        }
+
+        new_generation
+    }
 }
 
 impl std::fmt::Debug for Universe {
@@ -63,6 +84,15 @@ enum CellState {
     Dead,
 }
 
+impl CellState {
+    fn transition(&self, alive_neighbors: usize) -> Self {
+        match self {
+            CellState::Alive => CellState::Dead,
+            CellState::Dead => CellState::Alive,
+        }
+    }
+}
+
 fn main() {
     let mut universe = Universe::new_empty();
 
@@ -71,9 +101,11 @@ fn main() {
     universe.set_cell(2, 3, Cell::new(CellState::Alive));
 
     loop {
-        print!("\x1B[2J\x1B[H"); // reset screen
+        print!("\x1B[2J\x1B[H"); // clear screen and set cursor position to top-left
         print!("{:?}", universe);
-        universe.tick();
+
+        universe = universe.tick();
+
         std::thread::sleep(Universe::GEN_SLEEP);
     }
 }
