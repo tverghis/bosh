@@ -1,19 +1,19 @@
 use std::time::Duration;
 
+const UNIVERSE_ROWS: usize = 18;
+const UNIVERSE_COLS: usize = 18;
+
+const GENERATION_TICK_RATE: Duration = Duration::from_millis(500);
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct Universe {
-    cells: [[Cell; Universe::UNIVERSE_ROWS]; Universe::UNIVERSE_COLS],
+    cells: [[Cell; UNIVERSE_ROWS]; UNIVERSE_COLS],
 }
 
 impl Universe {
-    const UNIVERSE_ROWS: usize = 18;
-    const UNIVERSE_COLS: usize = 18;
-
-    const GEN_SLEEP: Duration = Duration::from_millis(500);
-
     fn new_empty() -> Self {
         Self {
-            cells: [[Cell::new(CellState::Dead); Universe::UNIVERSE_ROWS]; Universe::UNIVERSE_COLS],
+            cells: [[Cell::new(CellState::Dead); UNIVERSE_ROWS]; UNIVERSE_COLS],
         }
     }
 
@@ -25,7 +25,7 @@ impl Universe {
         let mut new_universe = Universe::new_empty();
 
         fn alive_neighbors_count(
-            cells: &[[Cell; Universe::UNIVERSE_ROWS]; Universe::UNIVERSE_COLS],
+            cells: &[[Cell; UNIVERSE_ROWS]; UNIVERSE_COLS],
             this_x: usize,
             this_y: usize,
         ) -> usize {
@@ -46,8 +46,8 @@ impl Universe {
             sum
         }
 
-        for row in 0..Universe::UNIVERSE_ROWS {
-            for col in 0..Universe::UNIVERSE_COLS {
+        for row in 0..UNIVERSE_ROWS {
+            for col in 0..UNIVERSE_COLS {
                 let current_cell = self.cells[row][col];
                 let alive_neighbors = alive_neighbors_count(&self.cells, row, col);
 
@@ -62,8 +62,8 @@ impl Universe {
 
 impl std::fmt::Debug for Universe {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for x in 0..Universe::UNIVERSE_ROWS {
-            for y in 0..Universe::UNIVERSE_COLS {
+        for x in 0..UNIVERSE_ROWS {
+            for y in 0..UNIVERSE_COLS {
                 write!(f, "{:?}", self.cells[x][y])?;
             }
             writeln!(f)?;
@@ -115,11 +115,11 @@ impl CellState {
 }
 
 fn get_neighbor_row_range(this_x: usize) -> std::ops::RangeInclusive<usize> {
-    this_x.saturating_sub(1)..=(this_x + 1).clamp(this_x, Universe::UNIVERSE_ROWS - 1)
+    this_x.saturating_sub(1)..=(this_x + 1).clamp(this_x, UNIVERSE_ROWS - 1)
 }
 
 fn get_neighbor_col_range(this_y: usize) -> std::ops::RangeInclusive<usize> {
-    this_y.saturating_sub(1)..=(this_y + 1).clamp(this_y, Universe::UNIVERSE_COLS - 1)
+    this_y.saturating_sub(1)..=(this_y + 1).clamp(this_y, UNIVERSE_COLS - 1)
 }
 
 fn main() {
@@ -136,7 +136,7 @@ fn main() {
         print!("{:?}", universe);
 
         universe = universe.tick();
-        std::thread::sleep(Universe::GEN_SLEEP);
+        std::thread::sleep(GENERATION_TICK_RATE);
     }
 }
 
