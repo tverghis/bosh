@@ -133,8 +133,10 @@ fn main() {
 
     universe.seed(&[(0, 0), (0, 2), (1, 1), (1, 2), (2, 1)]);
 
+    print!("\x1B[2J"); // Clear screen
+
     loop {
-        print!("\x1B[2J\x1B[H"); // clear screen and set cursor position to top-left
+        print!("\x1B[H"); // Set cursor to top-left
         print!("{:?}", universe);
 
         universe = universe.tick();
