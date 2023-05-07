@@ -21,9 +21,9 @@ impl Universe {
         self.cells[row][col] = Cell::new(state);
     }
 
-    fn set_all_cells(&mut self, coords: &[(usize, usize)], state: CellState) {
+    fn seed(&mut self, coords: &[(usize, usize)]) {
         for &(row, col) in coords {
-            self.cells[row][col] = Cell::new(state)
+            self.cells[row][col] = Cell::new(CellState::Alive)
         }
     }
 
@@ -131,7 +131,7 @@ fn get_neighbor_col_range(this_y: usize) -> std::ops::RangeInclusive<usize> {
 fn main() {
     let mut universe = Universe::new_empty();
 
-    universe.set_all_cells(&[(0, 0), (0, 2), (1, 1), (1, 2), (2, 1)], CellState::Alive);
+    universe.seed(&[(0, 0), (0, 2), (1, 1), (1, 2), (2, 1)]);
 
     loop {
         print!("\x1B[2J\x1B[H"); // clear screen and set cursor position to top-left
