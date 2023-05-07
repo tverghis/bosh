@@ -17,8 +17,14 @@ impl Universe {
         }
     }
 
-    fn set_cell(&mut self, row: usize, col: usize, cell: Cell) {
-        self.cells[row][col] = cell;
+    fn set_cell(&mut self, row: usize, col: usize, state: CellState) {
+        self.cells[row][col] = Cell::new(state);
+    }
+
+    fn set_all_cells(&mut self, coords: &[(usize, usize)], state: CellState) {
+        for &(row, col) in coords {
+            self.cells[row][col] = Cell::new(state)
+        }
     }
 
     fn tick(&self) -> Self {
@@ -52,7 +58,7 @@ impl Universe {
                 let alive_neighbors = alive_neighbors_count(&self.cells, row, col);
 
                 let new_state = current_cell.state.transition(alive_neighbors);
-                new_universe.set_cell(row, col, Cell::new(new_state));
+                new_universe.set_cell(row, col, new_state);
             }
         }
 
@@ -125,11 +131,7 @@ fn get_neighbor_col_range(this_y: usize) -> std::ops::RangeInclusive<usize> {
 fn main() {
     let mut universe = Universe::new_empty();
 
-    universe.set_cell(0, 0, Cell::new(CellState::Alive));
-    universe.set_cell(0, 2, Cell::new(CellState::Alive));
-    universe.set_cell(1, 1, Cell::new(CellState::Alive));
-    universe.set_cell(1, 2, Cell::new(CellState::Alive));
-    universe.set_cell(2, 1, Cell::new(CellState::Alive));
+    universe.set_all_cells(&[(0, 0), (0, 2), (1, 1), (1, 2), (2, 1)], CellState::Alive);
 
     loop {
         print!("\x1B[2J\x1B[H"); // clear screen and set cursor position to top-left
