@@ -6,10 +6,10 @@ struct Universe {
 }
 
 impl Universe {
-    const UNIVERSE_ROWS: usize = 5;
-    const UNIVERSE_COLS: usize = 5;
+    const UNIVERSE_ROWS: usize = 18;
+    const UNIVERSE_COLS: usize = 18;
 
-    const GEN_SLEEP: Duration = Duration::from_millis(700);
+    const GEN_SLEEP: Duration = Duration::from_millis(500);
 
     fn new_empty() -> Self {
         Self {
@@ -22,26 +22,41 @@ impl Universe {
     }
 
     fn tick(&self) -> Self {
-        let mut new_generation = Universe::new_empty();
+        let mut new_universe = Universe::new_empty();
 
-        fn alive_neighbors_count(this_x: usize, this_y: usize) -> usize {
+        fn alive_neighbors_count(
+            cells: &[[Cell; Universe::UNIVERSE_ROWS]; Universe::UNIVERSE_COLS],
+            this_x: usize,
+            this_y: usize,
+        ) -> usize {
             let mut sum = 0;
 
-            return sum;
+            for row in get_neighbor_row_range(this_x) {
+                for col in get_neighbor_col_range(this_y) {
+                    if (this_x, this_y) == (row, col) {
+                        continue;
+                    }
+
+                    if cells[row][col].state == CellState::Alive {
+                        sum += 1;
+                    }
+                }
+            }
+
+            sum
         }
 
         for row in 0..Universe::UNIVERSE_ROWS {
             for col in 0..Universe::UNIVERSE_COLS {
                 let current_cell = self.cells[row][col];
-                let alive_neighbors = alive_neighbors_count(row, col);
+                let alive_neighbors = alive_neighbors_count(&self.cells, row, col);
 
                 let new_state = current_cell.state.transition(alive_neighbors);
-
-                new_generation.cells[row][col] = Cell::new(new_state);
+                new_universe.set_cell(row, col, Cell::new(new_state));
             }
         }
 
-        new_generation
+        new_universe
     }
 }
 
@@ -51,7 +66,7 @@ impl std::fmt::Debug for Universe {
             for y in 0..Universe::UNIVERSE_COLS {
                 write!(f, "{:?}", self.cells[x][y])?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
         Ok(())
@@ -87,25 +102,75 @@ enum CellState {
 impl CellState {
     fn transition(&self, alive_neighbors: usize) -> Self {
         match self {
-            CellState::Alive => CellState::Dead,
-            CellState::Dead => CellState::Alive,
+            CellState::Alive => match alive_neighbors {
+                2 | 3 => CellState::Alive,
+                _ => CellState::Dead,
+            },
+            CellState::Dead => match alive_neighbors {
+                3 => CellState::Alive,
+                _ => CellState::Dead,
+            },
         }
     }
+}
+
+fn get_neighbor_row_range(this_x: usize) -> std::ops::RangeInclusive<usize> {
+    this_x.saturating_sub(1)..=(this_x + 1).clamp(this_x, Universe::UNIVERSE_ROWS - 1)
+}
+
+fn get_neighbor_col_range(this_y: usize) -> std::ops::RangeInclusive<usize> {
+    this_y.saturating_sub(1)..=(this_y + 1).clamp(this_y, Universe::UNIVERSE_COLS - 1)
 }
 
 fn main() {
     let mut universe = Universe::new_empty();
 
+    universe.set_cell(0, 0, Cell::new(CellState::Alive));
+    universe.set_cell(0, 2, Cell::new(CellState::Alive));
+    universe.set_cell(1, 1, Cell::new(CellState::Alive));
+    universe.set_cell(1, 2, Cell::new(CellState::Alive));
     universe.set_cell(2, 1, Cell::new(CellState::Alive));
-    universe.set_cell(2, 2, Cell::new(CellState::Alive));
-    universe.set_cell(2, 3, Cell::new(CellState::Alive));
 
     loop {
         print!("\x1B[2J\x1B[H"); // clear screen and set cursor position to top-left
         print!("{:?}", universe);
 
         universe = universe.tick();
-
         std::thread::sleep(Universe::GEN_SLEEP);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn get_neighbor_row_range_for_top_row() {
+        assert_eq!(get_neighbor_row_range(0), 0..=1);
+    }
+
+    #[test]
+    fn get_neighbor_row_range_for_bottom_row() {
+        assert_eq!(get_neighbor_row_range(4), 3..=4);
+    }
+
+    #[test]
+    fn get_neighbor_row_range_for_middle_row() {
+        assert_eq!(get_neighbor_row_range(2), 1..=3);
+    }
+
+    #[test]
+    fn get_neighbor_col_range_for_left_col() {
+        assert_eq!(get_neighbor_col_range(0), 0..=1);
+    }
+
+    #[test]
+    fn get_neighbor_col_range_for_right_col() {
+        assert_eq!(get_neighbor_col_range(4), 3..=4);
+    }
+
+    #[test]
+    fn get_neighbor_col_range_for_middle_col() {
+        assert_eq!(get_neighbor_col_range(2), 1..=3);
     }
 }
